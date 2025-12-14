@@ -68,6 +68,19 @@ MARCAR ENTREGADO
         token: "CAPRICORNIO_2025"
       })
     });
+    document.getElementById("entregadoBtn").addEventListener("click", () => {
+  const pedidoId = document.getElementById("pedidoId").value.trim();
+  const repartidor = document.getElementById("repartidor").value;
+  const pin = document.getElementById("pin").value.trim();
+
+  if(!pedidoId || !pin){
+    alert("Falta ID del pedido o PIN");
+    return;
+  }
+
+  apiMarkDelivered(pedidoId, repartidor, pin);
+});
+
     alert("Pedido marcado como ENTREGADO");
   }catch(e){
     alert("Error al marcar entregado");
@@ -142,5 +155,6 @@ Gracias.`;
 
 </body>
 </html>
+
 
 
