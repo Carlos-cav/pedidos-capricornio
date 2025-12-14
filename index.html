@@ -34,8 +34,59 @@
 <button id="orderBtn" style="padding:12px 20px;font-size:16px">
 PEDIR POR WHATSAPP
 </button>
+<hr>
+
+<h3>🚚 Control de entrega</h3>
+
+<label>ID del pedido</label><br>
+<input id="pedidoId" placeholder="CC-1765680437"><br><br>
+
+<label>Repartidor</label><br>
+<select id="repartidor">
+  <option>Carlitos</option>
+</select><br><br>
+
+<label>PIN</label><br>
+<input id="pin" type="password" placeholder="3232"><br><br>
+
+<button id="entregadoBtn">
+MARCAR ENTREGADO
+</button>
 
 <script>
+  async function apiMarkDelivered(pedido_id, repartidor, pin){
+  try{
+    await fetch(API_URL,{
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "mark_delivered",
+        pedido_id,
+        repartidor,
+        pin,
+        token: "CAPRICORNIO_2025"
+      })
+    });
+    alert("Pedido marcado como ENTREGADO");
+  }catch(e){
+    alert("Error al marcar entregado");
+  }
+}
+
+document.getElementById("entregadoBtn").addEventListener("click", () => {
+  const pedidoId = document.getElementById("pedidoId").value.trim();
+  const repartidor = document.getElementById("repartidor").value;
+  const pin = document.getElementById("pin").value.trim();
+
+  if(!pedidoId || !pin){
+    alert("Falta ID o PIN");
+    return;
+  }
+
+  apiMarkDelivered(pedidoId, repartidor, pin);
+});
+
 /* ================= CONFIGURACIÓN ================= */
 const WHATSAPP_NUMBER = "543704418194";
 const API_URL = "https://script.google.com/macros/s/AKfycby90m4hZisAzjG2B9jjRSFBDmj9WD6f6eYBiyIcsAGoFVBf6r0lagv-ebjVkAzEBtQN/exec";
@@ -91,4 +142,5 @@ Gracias.`;
 
 </body>
 </html>
+
 
