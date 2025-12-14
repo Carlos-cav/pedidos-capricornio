@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Casa Capricornio | Pedido de Agua</title>
+</head>
+<body style="font-family:Arial;background:#0b1220;color:white;padding:20px">
+
+<h2>💧 Agua Purificada Casa Capricornio</h2>
+<p>Pedido simple por WhatsApp – Entrega por ruta</p>
+
+<hr>
+
+<label>Nombre</label><br>
+<input id="name"><br><br>
+
+<label>Zona</label><br>
+<select id="zone">
+  <option value="">Elegí zona</option>
+  <option>El Chorro</option>
+  <option>Lote 8</option>
+  <option>María Cristina</option>
+  <option>El Palmar</option>
+  <option>El Potrillo</option>
+</select><br><br>
+
+<label>Cantidad de bidones (20 L)</label><br>
+<input id="qty" type="number" min="1"><br><br>
+
+<label>WhatsApp cliente (opcional)</label><br>
+<input id="clientKey"><br><br>
+
+<button id="orderBtn" style="padding:12px 20px;font-size:16px">
+PEDIR POR WHATSAPP
+</button>
+
+<script>
+/* ================= CONFIGURACIÓN ================= */
+const WHATSAPP_NUMBER = "543704418194";
+const API_URL = "https://script.google.com/macros/s/AKfycby90m4hZisAzjG2B9jjRSFBDmj9WD6f6eYBiyIcsAGoFVBf6r0lagv-ebjVkAzEBtQN/exec";
+
+/* ================= API ================= */
+async function apiCreateOrder(payload){
+  try{
+    const res = await fetch(API_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(payload)
+    });
+    return await res.json();
+  }catch(e){
+    return {ok:false,error:String(e)};
+  }
+}
+
+/* ================= BOTÓN ================= */
+document.getElementById("orderBtn").addEventListener("click", async () => {
+  const name = document.getElementById("name").value.trim();
+  const zone = document.getElementById("zone").value.trim();
+  const qty  = document.getElementById("qty").value.trim();
+  const key  = document.getElementById("clientKey").value.trim();
+
+  if(!zone || !qty){
+    alert("Completá zona y cantidad");
+    return;
+  }
+
+  // Guardar pedido en Google Sheets
+  await apiCreateOrder({
+    action: "create_order",
+    name,
+    zone,
+    qty,
+    client_whatsapp: key
+  });
+
+  // Mensaje WhatsApp
+  const msg =
+`Hola, buen día.
+Quiero pedir agua purificada Casa Capricornio.
+Estoy en ${zone} y necesito ${qty} bidones de 20 L.
+Gracias.`;
+
+  window.open(
+    "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg),
+    "_blank"
+  );
+});
+</script>
+
+</body>
+</html>
