@@ -1,179 +1,138 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Casa Capricornio | Pedido de Agua</title>
+  <style>
+    body{background:#0b1220;color:#fff;font-family:Arial,Helvetica,sans-serif;padding:18px}
+    input,select,button{padding:10px;margin:6px 0;width:280px;max-width:100%}
+    button{cursor:pointer}
+    hr{margin:18px 0;border:0;border-top:1px solid #445}
+    h2,h3{margin:10px 0}
+    .box{max-width:520px}
+  </style>
 </head>
-<body style="font-family:Arial;background:#0b1220;color:white;padding:20px">
+<body>
+  <div class="box">
+    <h2>Pedido simple por WhatsApp — Entrega por ruta</h2>
 
-<h2>💧 Agua Purificada Casa Capricornio</h2>
-<p>Pedido simple por WhatsApp – Entrega por ruta</p>
+    <label>Nombre</label><br>
+    <input id="name" placeholder="Tu nombre"><br>
 
-<hr>
+    <label>Zona</label><br>
+    <select id="zone">
+      <option>El Chorro</option>
+      <option>Lote 8</option>
+      <option>María Cristina</option>
+      <option>El Palmar</option>
+      <option>El Favorito</option>
+      <option>El Potrillo</option>
+      <option>Quebracho</option>
+    </select><br>
 
-<label>Nombre</label><br>
-<input id="name"><br><br>
+    <label>Cantidad de bidones (20 L)</label><br>
+    <input id="qty" type="number" min="1" value="1"><br>
 
-<label>Zona</label><br>
-<select id="zone">
-  <option value="">Elegí zona</option>
-  <option>El Chorro</option>
-  <option>Lote 8</option>
-  <option>María Cristina</option>
-  <option>El Palmar</option>
-  <option>El Potrillo</option>
-</select><br><br>
+    <label>WhatsApp cliente (opcional)</label><br>
+    <input id="clientKey" placeholder="3704... (opcional)"><br>
 
-<label>Cantidad de bidones (20 L)</label><br>
-<input id="qty" type="number" min="1"><br><br>
+    <button id="orderBtn">PEDIR POR WHATSAPP</button>
 
-<label>WhatsApp cliente (opcional)</label><br>
-<input id="clientKey"><br><br>
+    <hr>
 
-<button id="orderBtn" style="padding:12px 20px;font-size:16px">
-PEDIR POR WHATSAPP
-</button>
-<hr>
+    <h3>🚚 Control de entrega</h3>
 
-<h3>🚚 Control de entrega</h3>
+    <label>ID del pedido</label><br>
+    <input id="pedidoId" placeholder="CC-..."><br>
 
-<label>ID del pedido</label><br>
-<input id="pedidoId" placeholder="CC-1765680437"><br><br>
+    <label>Repartidor</label><br>
+    <select id="repartidor">
+      <option>Carlitos</option>
+      <option>Barto</option>
+    </select><br>
 
-<label>Repartidor</label><br>
-<select id="repartidor">
-  <option>Carlitos</option>
-</select><br><br>
+    <label>PIN</label><br>
+    <input id="pin" type="password" placeholder="3232"><br>
 
-<label>PIN</label><br>
-<input id="pin" type="password" placeholder="3232"><br><br>
+    <button id="entregadoBtn">MARCAR ENTREGADO</button>
+  </div>
 
-<button id="entregadoBtn">
-MARCAR ENTREGADO
-</button>
+  <script>
+    // ======= CONFIGURACIÓN =======
+    const WHATSAPP_NUMBER = "543704418194";
+    const API_URL = "https://script.google.com/macros/s/AKfycby90m4hZisAzjG2B9jjRSFBDmj9WD6f6eYBiyIcsAGoFVBf6r0lagv-ebjVkAzEBtQN/exec";
+    const TOKEN = "CAPRICORNIO_2025";
 
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycby90m4hZisAzjG2B9jjRSFBDmj9WD6f6eYBiyIcsAGoFVBf6r0lagv-ebjVkAzEBtQN/exec";
+    async function apiCall(payload){
+      // IMPORTANTE: con Apps Script normalmente se usa no-cors (no se puede leer JSON desde el navegador).
+      await fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    }
 
-async function apiMarkDelivered(pedido_id, repartidor, pin) {
-  try {
-  await fetch(API_URL, {
-  method: "POST",
-  mode: "no-cors",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    action: "create_order",
-    nombre,
-    zona,
-    cantidad,
-    whatsapp_cliente
-  })
-});
-    alert("Pedido enviado. Si no se abre WhatsApp, igual revisá la planilla.");
-    alert("Listo. Marqué ENTREGADO (revisá la planilla).");
-  } catch (err) {
-    alert("ERROR de conexión: " + err);
-  }
-}
+    document.getElementById("orderBtn").addEventListener("click", async () => {
+      const nombre = document.getElementById("name").value.trim();
+      const zona = document.getElementById("zone").value.trim();
+      const cantidad = document.getElementById("qty").value.trim();
+      const whatsapp_cliente = document.getElementById("clientKey").value.trim();
 
-document.getElementById("entregadoBtn").addEventListener("click", () => {
-  const pedidoId = document.getElementById("pedidoId").value.trim();
-  const repartidor = document.getElementById("repartidor").value;
-  const pin = document.getElementById("pin").value.trim();
+      if(!nombre || !zona || !cantidad){
+        alert("Completá nombre, zona y cantidad");
+        return;
+      }
 
-  if (!pedidoId || !pin) {
-    alert("Falta ID del pedido o PIN");
-    return;
-  }
+      // Genero ID en la web (así lo ves al toque y lo copiás)
+      const pedido_id = "CC-" + Date.now();
+      document.getElementById("pedidoId").value = pedido_id;
 
-  apiMarkDelivered(pedidoId, repartidor, pin);
-});
-</script>
-<script>
-const WHATSAPP_NUMBER = "543704418194";
-const API_URL = "https://script.google.com/macros/s/AKfycby90m4hZisAzjG2B9jjRSFBDmj9WD6f6eYBiyIcsAGoFVBf6r0lagv-ebjVkAzEBtQN/exec";
+      // 1) Guardar en Sheets
+      await apiCall({
+        action: "create_order",
+        pedido_id,
+        nombre,
+        zona,
+        cantidad,
+        whatsapp_cliente
+      });
 
-async function apiCreateOrder(payload){
-  try{
-    await fetch(API_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      // 2) Abrir WhatsApp
+      const msg = `Hola, buen día. Quiero pedir agua purificada Casa Capricornio.
+Estoy en ${zona} y necesito ${cantidad} bidón(es) de 20 L.
+Mi nombre: ${nombre}
+ID Pedido: ${pedido_id}
+Gracias.`;
+
+      window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
+      alert("Pedido enviado (se guardó en la planilla).");
     });
-  }catch(e){
-    console.log("Error API:", e);
-  }
-}
 
-async function apiMarkDelivered(pedido_id, repartidor, pin){
-  try{
-    await fetch(API_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    document.getElementById("entregadoBtn").addEventListener("click", async () => {
+      const pedido_id = document.getElementById("pedidoId").value.trim();
+      const repartidor = document.getElementById("repartidor").value.trim();
+      const pin = document.getElementById("pin").value.trim();
+
+      if(!pedido_id || !pin){
+        alert("Falta ID del pedido o PIN");
+        return;
+      }
+
+      await apiCall({
         action: "mark_delivered",
         pedido_id,
         repartidor,
         pin,
-        token: "CAPRICORNIO_2025"
-      })
+        token: TOKEN
+      });
+
+      alert("Pedido marcado como ENTREGADO (revisá la planilla).");
     });
-    alert("Listo. Marqué ENTREGADO (revisá la planilla).");
-  }catch(e){
-    alert("ERROR de conexión: " + e);
-  }
-}
-
-document.getElementById("orderBtn").addEventListener("click", async () => {
-  const name = document.getElementById("name").value.trim();
-  const zone = document.getElementById("zone").value.trim();
-  const qty = document.getElementById("qty").value.trim();
-  const clientKey = document.getElementById("clientKey").value.trim();
-
-  if(!zone || !qty){
-    alert("Completá zona y cantidad");
-    return;
-  }
-
-  await apiCreateOrder({
-    action: "create_order",
-    nombre: name,
-    zona: zone,
-    cantidad: qty,
-    whatsapp_cliente: clientKey
-  });
-
-  const msg = `Hola, buen día. Quiero pedir agua purificada Casa Capricornio. Estoy en ${zone} y necesito ${qty} bidones de 20 L. Gracias.`;
-  window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
-});
-
-document.getElementById("entregadoBtn").addEventListener("click", () => {
-  const pedidoId = document.getElementById("pedidoId").value.trim();
-  const repartidor = document.getElementById("repartidor").value;
-  const pin = document.getElementById("pin").value.trim();
-
-  if(!pedidoId || !pin){
-    alert("Falta ID del pedido o PIN");
-    return;
-  }
-
-  apiMarkDelivered(pedidoId, repartidor, pin);
-});
-</script>
-
-
+  </script>
 </body>
 </html>
-
-
-
-
-
-
-
 
 
 
