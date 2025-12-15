@@ -90,15 +90,13 @@ document.getElementById("entregadoBtn").addEventListener("click", () => {
   apiMarkDelivered(pedidoId, repartidor, pin);
 });
 </script>
-
-
-/* ================= CONFIGURACIÓN ================= */
+<script>
 const WHATSAPP_NUMBER = "543704418194";
 const API_URL = "https://script.google.com/macros/s/AKfycby90m4hZisAzjG2B9jjRSFBDmj9WD6f6eYBiyIcsAGoFVBf6r0lagv-ebjVkAzEBtQN/exec";
-/* ================= API ================= */
+
 async function apiCreateOrder(payload){
   try{
-    await fetch(API_URL,{
+    await fetch(API_URL, {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "application/json" },
@@ -109,43 +107,67 @@ async function apiCreateOrder(payload){
   }
 }
 
-/* ================= BOTÓN ================= */
+async function apiMarkDelivered(pedido_id, repartidor, pin){
+  try{
+    await fetch(API_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "mark_delivered",
+        pedido_id,
+        repartidor,
+        pin,
+        token: "CAPRICORNIO_2025"
+      })
+    });
+    alert("Listo. Marqué ENTREGADO (revisá la planilla).");
+  }catch(e){
+    alert("ERROR de conexión: " + e);
+  }
+}
+
 document.getElementById("orderBtn").addEventListener("click", async () => {
   const name = document.getElementById("name").value.trim();
   const zone = document.getElementById("zone").value.trim();
-  const qty  = document.getElementById("qty").value.trim();
-  const key  = document.getElementById("clientKey").value.trim();
+  const qty = document.getElementById("qty").value.trim();
+  const clientKey = document.getElementById("clientKey").value.trim();
 
   if(!zone || !qty){
     alert("Completá zona y cantidad");
     return;
   }
 
-  // Guardar pedido en Google Sheets
   await apiCreateOrder({
     action: "create_order",
-    name,
-    zone,
-    qty,
-    client_whatsapp: key
+    nombre: name,
+    zona: zone,
+    cantidad: qty,
+    whatsapp_cliente: clientKey
   });
 
-  // Mensaje WhatsApp
-  const msg =
-`Hola, buen día.
-Quiero pedir agua purificada Casa Capricornio.
-Estoy en ${zone} y necesito ${qty} bidones de 20 L.
-Gracias.`;
+  const msg = `Hola, buen día. Quiero pedir agua purificada Casa Capricornio. Estoy en ${zone} y necesito ${qty} bidones de 20 L. Gracias.`;
+  window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
+});
 
-  window.open(
-    "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg),
-    "_blank"
-  );
+document.getElementById("entregadoBtn").addEventListener("click", () => {
+  const pedidoId = document.getElementById("pedidoId").value.trim();
+  const repartidor = document.getElementById("repartidor").value;
+  const pin = document.getElementById("pin").value.trim();
+
+  if(!pedidoId || !pin){
+    alert("Falta ID del pedido o PIN");
+    return;
+  }
+
+  apiMarkDelivered(pedidoId, repartidor, pin);
 });
 </script>
 
+
 </body>
 </html>
+
 
 
 
