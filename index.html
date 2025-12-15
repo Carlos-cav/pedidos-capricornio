@@ -58,19 +58,19 @@ const API_URL = "https://script.google.com/macros/s/AKfycby90m4hZisAzjG2B9jjRSFB
 
 async function apiMarkDelivered(pedido_id, repartidor, pin) {
   try {
-    await fetch(API_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "mark_delivered",
-        pedido_id,
-        repartidor,
-        pin,
-        token: "CAPRICORNIO_2025"
-      })
-    });
-
+  await fetch(API_URL, {
+  method: "POST",
+  mode: "no-cors",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    action: "create_order",
+    nombre,
+    zona,
+    cantidad,
+    whatsapp_cliente
+  })
+});
+    alert("Pedido enviado. Si no se abre WhatsApp, igual revisá la planilla.");
     alert("Listo. Marqué ENTREGADO (revisá la planilla).");
   } catch (err) {
     alert("ERROR de conexión: " + err);
@@ -146,6 +146,7 @@ Gracias.`;
 
 </body>
 </html>
+
 
 
 
