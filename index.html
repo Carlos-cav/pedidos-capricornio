@@ -60,84 +60,96 @@
     <br><br>
     <button id="entregadoBtn">MARCAR ENTREGADO</button>
   </div>
+<script>
+/* ========= CONFIG ========= */
+const WHATSAPP_NUMBER = "543704418194";
+const API_URL = "https://script.google.com/macros/s/AKfycby90m4hZisAzjG2B9jjRSFBDmj9WD6f6eYBiyIcsAGoFVBf6r0lagv-ebjVkAzEBtQN/exec";
+const TOKEN = "CAPRICORNIO_2025";
 
-  <script>
-    // ===== CONFIG =====
-    const WHATSAPP_NUMBER = "543704418194";
-    const API_URL = "https://script.google.com/macros/s/AKfycby90m4hZisAzjG2B9jjRSFBDmj9WD6f6eYBiyIcsAGoFVBf6r0lagv-ebjVkAzEBtQN/exec";
-    const TOKEN = "CAPRICORNIO_2025";
+/* ========= UTIL ========= */
+function makeId() {
+  return "CC-" + Date.now();
+}
 
-    function makeId(){
-      return "CC-" + Date.now();
-    }
+async function postToApi(payload) {
+  await fetch(API_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  });
+}
 
-    // IMPORTANTE: para evitar problemas CORS con Google Apps Script, mandamos como text/plain
-    async function postToApi(payload){
-      await fetch(API_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      });
-      return true; // no-cors no permite leer respuesta
-    }
+/* ========= PEDIR POR WHATSAPP ========= */
+document.getElementById("orderBtn").addEventListener("click", async () => {
+  const name = document.getElementById("name").value.trim();
+  const zone = document.getElementById("zone").value.trim();
+  const qty  = document.getElementById("qty").value.trim();
+  const whatsapp_cliente = document.getElementById("clientKey").value.trim();
 
-    document.getElementById("orderBtn").addEventListener("click", async () => {
-      const name = document.getElementById("name").value.trim();
-      const zone = document.getElementById("zone").value.trim();
-      const qty = document.getElementById("qty").value.trim();
-      const whatsapp_cliente = document.getElementById("clientKey").value.trim();
+  if (!name || !zone || !qty) {
+    alert("Completá nombre, zona y cantidad");
+    return;
+  }
 
-      if (!name || !zone || !qty) { alert("Completá nombre, zona y cantidad"); return; }
+  const pedido_id = makeId();
 
-      const pedido_id = makeId();
+  // Guardar en Google Sheets
+  await postToApi({
+    action: "create_order",
+    pedido_id,
+    nombre: name,
+    zona: zone,
+    cantidad: qty,
+    whatsapp_cliente
+  });
 
-      // 1) Guardar en Google Sheets
-      await postToApi({
-        action: "create_order",
-        pedido_id,
-        nombre: name,
-        zona: zone,
-        cantidad: qty,
-        whatsapp_cliente
-      });
+  // Mostrar ID en control
+  document.getElementById("pedidoId").value = pedido_id;
 
-      // 2) Preparar WhatsApp
-      const msg = `Hola, buen día.
+  // WhatsApp
+  const msg = `Hola, buen día.
 Quiero pedir agua purificada Casa Capricornio.
+
 Nombre: ${name}
 Zona: ${zone}
-Cantidad: ${qty} bidón(es) de 20 L.
+Cantidad: ${qty} bidón(es) de 20 L
 ID: ${pedido_id}
+
 Gracias.`;
 
-      // Mostrar ID en el control de entrega
-      document.getElementById("pedidoId").value = pedido_id;
+  window.open(
+    "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg),
+    "_blank"
+  );
+});
 
-      // Abrir WhatsApp
-      window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
-    });
+/* ========= MARCAR ENTREGADO ========= */
+document.getElementById("entregadoBtn").addEventListener("click", async () => {
+  const pedido_id  = document.getElementById("pedidoId").value.trim();
+  const repartidor = document.getElementById("repartidor").value.trim();
+  const pin        = document.getElementById("pin").value.trim();
 
-    document.getElementById("entregadoBtn").addEventListener("click", async () => {
-      const pedido_id = document.getElementById("pedidoId").value.trim();
-      const repartidor = document.getElementById("repartidor").value.trim();
-      const pin = document.getElementById("pin").value.trim();
+  if (!pedido_id || !pin) {
+    alert("Falta ID del pedido o PIN");
+    return;
+  }
 
-      if (!pedido_id || !pin) { alert("Falta ID del pedido o PIN"); return; }
+  await postToApi({
+    action: "mark_delivered",
+    pedido_id,
+    repartidor,
+    pin,
+    token: TOKEN
+  });
 
-      await postToApi({
-        action: "mark_delivered",
-        pedido_id,
-        repartidor,
-        pin,
-        token: TOKEN
-      });
+  alert("Marcado como ENTREGADO. Revisá la planilla.");
+});
+</script>
 
-      alert("Marcado como ENTREGADO. Revisá la planilla en 5–10 segundos.");
-    });
-  </script>
 </body>
 </html>
+
 
 
 
