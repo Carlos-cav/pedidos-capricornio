@@ -58,7 +58,26 @@ MARCAR ENTREGADO
   try{
     await fetch(API_URL,{
       method: "POST",
-      mode: "no-cors",
+     fetch(API_URL, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    action: "mark_delivered",
+    pedido_id,
+    repartidor,
+    pin,
+    token: "CAPRICORNIO_2025"
+  })
+})
+.then(r => r.json())
+.then(res => {
+  if (res.ok) {
+    alert("Pedido marcado como ENTREGADO");
+  } else {
+    alert("ERROR: " + res.error);
+  }
+});
+
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "mark_delivered",
@@ -154,6 +173,7 @@ Gracias.`;
 
 </body>
 </html>
+
 
 
 
