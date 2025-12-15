@@ -54,30 +54,13 @@ MARCAR ENTREGADO
 </button>
 
 <script>
-  async function apiMarkDelivered(pedido_id, repartidor, pin){
-  try{
-    await fetch(API_URL,{
-      method: "POST",
-     fetch(API_URL, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    action: "mark_delivered",
-    pedido_id,
-    repartidor,
-    pin,
-    token: "CAPRICORNIO_2025"
-  })
-})
-.then(r => r.json())
-.then(res => {
-  if (res.ok) {
-    alert("Pedido marcado como ENTREGADO");
-  } else {
-    alert("ERROR: " + res.error);
-  }
-});
+const API_URL = "https://script.google.com/macros/s/AKfycby90m4hZisAzjG2B9jjRSFBDmj9WD6f6eYBiyIcsAGoFVBf6r0lagv-ebjVkAzEBtQN/exec";
 
+async function apiMarkDelivered(pedido_id, repartidor, pin) {
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      mode: "no-cors",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "mark_delivered",
@@ -87,22 +70,10 @@ MARCAR ENTREGADO
         token: "CAPRICORNIO_2025"
       })
     });
-    document.getElementById("entregadoBtn").addEventListener("click", () => {
-  const pedidoId = document.getElementById("pedidoId").value.trim();
-  const repartidor = document.getElementById("repartidor").value;
-  const pin = document.getElementById("pin").value.trim();
 
-  if(!pedidoId || !pin){
-    alert("Falta ID del pedido o PIN");
-    return;
-  }
-
-  apiMarkDelivered(pedidoId, repartidor, pin);
-});
-
-    alert("Pedido marcado como ENTREGADO");
-  }catch(e){
-    alert("Error al marcar entregado");
+    alert("Listo. Marqué ENTREGADO (revisá la planilla).");
+  } catch (err) {
+    alert("ERROR de conexión: " + err);
   }
 }
 
@@ -111,13 +82,15 @@ document.getElementById("entregadoBtn").addEventListener("click", () => {
   const repartidor = document.getElementById("repartidor").value;
   const pin = document.getElementById("pin").value.trim();
 
-  if(!pedidoId || !pin){
-    alert("Falta ID o PIN");
+  if (!pedidoId || !pin) {
+    alert("Falta ID del pedido o PIN");
     return;
   }
 
   apiMarkDelivered(pedidoId, repartidor, pin);
 });
+</script>
+
 
 /* ================= CONFIGURACIÓN ================= */
 const WHATSAPP_NUMBER = "543704418194";
@@ -173,6 +146,7 @@ Gracias.`;
 
 </body>
 </html>
+
 
 
 
